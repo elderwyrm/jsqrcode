@@ -54,7 +54,7 @@ qrcode.captureToCanvas = function()
     if(qrcode.gUM)
     {
         try{
-            if(qrcode.video.videoWidth == 0)
+            if(qrcode.video.videoWidth == 0 || qrcode.video.readyState < 2)
             {
                 setTimeout(qrcode.captureToCanvas, 500);
                 return;
@@ -69,12 +69,10 @@ qrcode.captureToCanvas = function()
                 qrcode.decode();
             }
             catch(e){       
-                console.log(e);
                 setTimeout(qrcode.captureToCanvas, 500);
             };
         }
         catch(e){       
-                console.log(e);
                 setTimeout(qrcode.captureToCanvas, 500);
         };
     }
@@ -88,15 +86,18 @@ qrcode.setWebcam = function(videoId)
     var constraints = { video: { facingMode: 'environment' }, audio: false };
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia(constraints)
+        return navigator.mediaDevices.getUserMedia(constraints)
             .then(qrcode.vidSuccess)
             .catch(function(err) {
                 console.log(err);
                 qrcode.vidError(err);
+                throw err;
             });
     } else {
         console.log('getUserMedia not supported in this browser.');
-        qrcode.vidError(new Error('getUserMedia not supported'));
+        var error = new Error('getUserMedia not supported');
+        qrcode.vidError(error);
+        return Promise.reject(error);
     }
 }
 

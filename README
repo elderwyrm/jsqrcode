@@ -1,36 +1,57 @@
 JavaScript QRCode reader for HTML5 enabled browser.
 2011 Lazar Laszlo  http://lazarsoft.info
+Updated by elderwyrm in 2026
 
-Try it online: http://webqr.com
+Try it online: https://elderwyrm.github.io/jsqrcode/
 
 This is a port of ZXing qrcode scanner, http://code.google.com/p/zxing.
+
+Running the Application:
+
+Open the `index.html` 
+
+The decoder libraries are kept in
+
+`src/`, and the entry point loads them using `src/<filename>.js` paths.
+
+For local development in VS Code, serve the repository root and open the URL in a browser:
+
+	python3 -m http.server 8000
+	http://localhost:8000/index.html
+
+The camera scanning requires browser camera support and permission;
+Use `localhost` or an HTTPS deployment to allow camera access when prompted.
+Once the camera is active, hold up a QR code and keep it visible in the video frame.
+The camera controls only show a running state after the `getUserMedia` succeeds. 
+Frames that don'tt contain a readable QR code are retried silently, so occasional missed frames are normal.
 
 Usage:
 
 Include the scripts in the following order:
 
-<script type="text/javascript" src="grid.js"></script>
-<script type="text/javascript" src="version.js"></script>
-<script type="text/javascript" src="detector.js"></script>
-<script type="text/javascript" src="formatinf.js"></script>
-<script type="text/javascript" src="errorlevel.js"></script>
-<script type="text/javascript" src="bitmat.js"></script>
-<script type="text/javascript" src="datablock.js"></script>
-<script type="text/javascript" src="bmparser.js"></script>
-<script type="text/javascript" src="datamask.js"></script>
-<script type="text/javascript" src="rsdecoder.js"></script>
-<script type="text/javascript" src="gf256poly.js"></script>
-<script type="text/javascript" src="gf256.js"></script>
-<script type="text/javascript" src="decoder.js"></script>
-<script type="text/javascript" src="qrcode.js"></script>
-<script type="text/javascript" src="findpat.js"></script>
-<script type="text/javascript" src="alignpat.js"></script>
-<script type="text/javascript" src="databr.js"></script>
+<script type="text/javascript" src="src/grid.js"></script>
+<script type="text/javascript" src="src/version.js"></script>
+<script type="text/javascript" src="src/detector.js"></script>
+<script type="text/javascript" src="src/formatinf.js"></script>
+<script type="text/javascript" src="src/errorlevel.js"></script>
+<script type="text/javascript" src="src/bitmat.js"></script>
+<script type="text/javascript" src="src/datablock.js"></script>
+<script type="text/javascript" src="src/bmparser.js"></script>
+<script type="text/javascript" src="src/datamask.js"></script>
+<script type="text/javascript" src="src/rsdecoder.js"></script>
+<script type="text/javascript" src="src/gf256poly.js"></script>
+<script type="text/javascript" src="src/gf256.js"></script>
+<script type="text/javascript" src="src/decoder.js"></script>
+<script type="text/javascript" src="src/qrcode.js"></script>
+<script type="text/javascript" src="src/findpat.js"></script>
+<script type="text/javascript" src="src/alignpat.js"></script>
+<script type="text/javascript" src="src/databr.js"></script>
 
 Set qrcode.callback to function "func(data)", where data will get the decoded information.
 
 Decode image with: qrcode.decode(url or DataURL).
 Decode from canvas with "qr-canvas" ID: qrcode.decode()
 
-[new from 2014.01.09]
-For webcam qrcode decoding (included in the test.html) you will need a browser with getUserMedia (WebRTC) capability.
+[new from 2026.09.8]
+The Flash-based webcam implementation was removed since Adobe killed it. 
+Camera access now uses native HTML5 `getUserMedia` API through WebRTC, with video frames processed on an HTML5 canvas.
