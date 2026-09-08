@@ -30,16 +30,8 @@ qrcode.callback = null;
 qrcode.vidSuccess = function (stream) 
 {
     qrcode.localstream = stream;
-    if(qrcode.webkit)
-        qrcode.video.src = window.webkitURL.createObjectURL(stream);
-    else
-    if(qrcode.moz)
-    {
-        qrcode.video.mozSrcObject = stream;
-        qrcode.video.play();
-    }
-    else
-        qrcode.video.src = stream;
+    qrcode.video.srcObject = stream;
+    qrcode.video.play();
     
     qrcode.gUM=true;
     
@@ -93,46 +85,18 @@ qrcode.setWebcam = function(videoId)
     var n=navigator;
     qrcode.video=document.getElementById(videoId);
 
-    var options = true;
-    if(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices)
-    {
-        try{
-            navigator.mediaDevices.enumerateDevices()
-            .then(function(devices) {
-              devices.forEach(function(device) {
-                console.log("deb1");
-                if (device.kind === 'videoinput') {
-                  if(device.label.toLowerCase().search("back") >-1)
-                    options=[{'sourceId': device.deviceId}] ;
-                }
-                console.log(device.kind + ": " + device.label +
-                            " id = " + device.deviceId);
-              });
-            })
-            
-        }
-        catch(e)
-        {
-            console.log(e);
-        }
-    }
-    else{
-        console.log("no navigator.mediaDevices.enumerateDevices" );
-    }
-    
-    if(n.getUserMedia)
-        n.getUserMedia({video: options, audio: false}, qrcode.vidSuccess, qrcode.vidError);
-    else
-    if(n.webkitGetUserMedia)
-    {
-        qrcode.webkit=true;
-        n.webkitGetUserMedia({video:options, audio: false}, qrcode.vidSuccess, qrcode.vidError);
-    }
-    else
-    if(n.mozGetUserMedia)
-    {
-        qrcode.moz=true;
-        n.mozGetUserMedia({video: options, audio: false}, qrcode.vidSuccess, qrcode.vidError);
+    var constraints = { video: { facingMode: 'environment' }, audio: false };
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia(constraints)
+            .then(qrcode.vidSuccess)
+            .catch(function(err) {
+                console.log(err);
+                qrcode.vidError(err);
+            });
+    } else {
+        console.log('getUserMedia not supported in this browser.');
+        qrcode.vidError(new Error('getUserMedia not supported'));
     }
 }
 
