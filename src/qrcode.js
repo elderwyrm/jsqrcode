@@ -26,55 +26,84 @@ qrcode.maxImgSize = 1024*1024;
 qrcode.sizeOfDataLengthInfo =  [  [ 10, 9, 8, 8 ],  [ 12, 11, 16, 10 ],  [ 14, 13, 16, 12 ] ];
 
 qrcode.callback = null;
+qrcode.barcodeDetector = null;
 
 qrcode.vidSuccess = function (stream) 
 {
     qrcode.localstream = stream;
     qrcode.video.srcObject = stream;
-    qrcode.video.play();
-    
     qrcode.gUM=true;
     
     qrcode.canvas_qr2 = document.createElement('canvas');
     qrcode.canvas_qr2.id = "qr-canvas";
-    qrcode.qrcontext2 = qrcode.canvas_qr2.getContext('2d');
-    qrcode.canvas_qr2.width = qrcode.video.videoWidth;
-    qrcode.canvas_qr2.height = qrcode.video.videoHeight;
-    setTimeout(qrcode.captureToCanvas, 500);
+    qrcode.qrcontext2 = qrcode.canvas_qr2.getContext('2d', { willReadFrequently: true });
+    if (typeof BarcodeDetector !== 'undefined') {
+        try {
+            qrcode.barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        } catch (e) {
+            qrcode.barcodeDetector = null;
+        }
+    }
+
+    return new Promise(function(resolve, reject) {
+        function startVideo() {
+            qrcode.video.play().then(function() {
+                qrcode.canvas_qr2.width = qrcode.video.videoWidth;
+                qrcode.canvas_qr2.height = qrcode.video.videoHeight;
+                setTimeout(qrcode.captureToCanvas, 500);
+                resolve();
+            }).catch(reject);
+        }
+
+        if (qrcode.video.readyState >= 1) {
+            startVideo();
+        } else {
+            qrcode.video.addEventListener('loadedmetadata', startVideo, { once: true });
+        }
+    });
 }
         
 qrcode.vidError = function(error)
 {
     qrcode.gUM=false;
+    if (qrcode.localstream) {
+        qrcode.localstream.getTracks().forEach(function(track) { track.stop(); });
+        qrcode.localstream = null;
+    }
     return;
 }
 
 qrcode.captureToCanvas = function()
 {
-    if(qrcode.gUM)
-    {
-        try{
-            if(qrcode.video.videoWidth == 0 || qrcode.video.readyState < 2)
-            {
-                setTimeout(qrcode.captureToCanvas, 500);
-                return;
-            }
-            else
-            {
-                qrcode.canvas_qr2.width = qrcode.video.videoWidth;
-                qrcode.canvas_qr2.height = qrcode.video.videoHeight;
-            }
-            qrcode.qrcontext2.drawImage(qrcode.video,0,0);
-            try{
-                qrcode.decode();
-            }
-            catch(e){       
-                setTimeout(qrcode.captureToCanvas, 500);
-            };
-        }
-        catch(e){       
-                setTimeout(qrcode.captureToCanvas, 500);
-        };
+    if (!qrcode.gUM) return;
+
+    qrcode.captureFrame().catch(function() {}).then(function() {
+        if (qrcode.gUM) setTimeout(qrcode.captureToCanvas, 500);
+    });
+}
+
+qrcode.captureFrame = function()
+{
+    if (!qrcode.gUM || !qrcode.video || qrcode.video.videoWidth === 0 || qrcode.video.readyState < 2) {
+        return Promise.reject(new Error('Camera frame is not ready'));
+    }
+
+    if (qrcode.barcodeDetector) {
+        return qrcode.barcodeDetector.detect(qrcode.video).then(function(codes) {
+            if (!codes.length) throw new Error('No QR code found');
+            var value = codes[0].rawValue;
+            if (qrcode.callback) qrcode.callback(value);
+            return value;
+        });
+    }
+
+    qrcode.canvas_qr2.width = qrcode.video.videoWidth;
+    qrcode.canvas_qr2.height = qrcode.video.videoHeight;
+    qrcode.qrcontext2.drawImage(qrcode.video, 0, 0);
+    try {
+        return Promise.resolve(qrcode.decode());
+    } catch (error) {
+        return Promise.reject(error);
     }
 }
 
@@ -113,7 +142,7 @@ qrcode.decode = function(src){
         else
         {
             var canvas_qr = document.getElementById("qr-canvas");
-            var context = canvas_qr.getContext('2d');
+            var context = canvas_qr.getContext('2d', { willReadFrequently: true });
         }
         qrcode.width = canvas_qr.width;
         qrcode.height = canvas_qr.height;
@@ -138,7 +167,7 @@ qrcode.decode = function(src){
             }
 
             var canvas_qr = document.createElement('canvas');
-            var context = canvas_qr.getContext('2d');
+            var context = canvas_qr.getContext('2d', { willReadFrequently: true });
             var nheight = image.height;
             var nwidth = image.width;
             if(image.width*image.height>qrcode.maxImgSize)

@@ -169,24 +169,24 @@
   }
 </style>
 
-<script src="src/qrcodegenerator.js"></script>
-<script src="src/grid.js"></script>
-<script src="src/version.js"></script>
-<script src="src/detector.js"></script>
-<script src="src/formatinf.js"></script>
-<script src="src/errorlevel.js"></script>
-<script src="src/bitmat.js"></script>
-<script src="src/datablock.js"></script>
-<script src="src/bmparser.js"></script>
-<script src="src/datamask.js"></script>
-<script src="src/rsdecoder.js"></script>
-<script src="src/gf256poly.js"></script>
-<script src="src/gf256.js"></script>
-<script src="src/decoder.js"></script>
-<script src="src/qrcode.js"></script>
-<script src="src/findpat.js"></script>
-<script src="src/alignpat.js"></script>
-<script src="src/databr.js"></script>
+<script src="./src/qrcodegenerator.js"></script>
+<script src="./src/grid.js"></script>
+<script src="./src/version.js"></script>
+<script src="./src/detector.js"></script>
+<script src="./src/formatinf.js"></script>
+<script src="./src/errorlevel.js"></script>
+<script src="./src/bitmat.js"></script>
+<script src="./src/datablock.js"></script>
+<script src="./src/bmparser.js"></script>
+<script src="./src/datamask.js"></script>
+<script src="./src/rsdecoder.js"></script>
+<script src="./src/gf256poly.js"></script>
+<script src="./src/gf256.js"></script>
+<script src="./src/decoder.js"></script>
+<script src="./src/qrcode.js"></script>
+<script src="./src/findpat.js"></script>
+<script src="./src/alignpat.js"></script>
+<script src="./src/databr.js"></script>
 
 <script>
   var cameraRunning = false;
@@ -272,7 +272,7 @@
 
     document.getElementById('btn-capture').addEventListener('click', function() {
       if (!cameraRunning) { setStatus('Start the camera first.'); return; }
-      try { qrcode.decode(); } catch(e) { showResult('error decoding QR Code'); }
+      qrcode.captureFrame().catch(function() { showResult('No QR code found in the current frame.'); });
     });
 
     /* ── Generator ── */
